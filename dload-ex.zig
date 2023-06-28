@@ -34,10 +34,8 @@ pub fn main() !void {
 
     var cosine: ?*const fn (f64) callconv(.C) f64 = undefined;
     cosine = @ptrCast(
-        ?*const fn (f64) callconv(.C) f64,
-        @alignCast(
-            std.meta.alignment(?*const fn (f64) callconv(.C) f64),
-            std.c.dlsym(handle, "cos")));
+                @alignCast(
+                    std.c.dlsym(handle, "cos")));
 
     log.info("cos {}\n", .{cosine.?(2.0)});
 }
