@@ -6,7 +6,7 @@
 // zig build-exe dload-ex.zig -ldl
 // ./dload-ex
 // info: cos -4.161468365471424e-01
-    
+
 //  file -L /lib/x86_64-linux-gnu/libm.so.6
 // /lib/x86_64-linux-gnu/libm.so.6: ELF 64-bit LSB shared object, x86-64, version 1 (GNU/Linux), dynamically linked, BuildID[sha1]=ee0a53f1c11e9b31b23373bcc3290b905836c287, for GNU/Linux 3.2.0, stripped
 
@@ -21,21 +21,14 @@
 // zig translate-c dload-ex.c -isystem /usr/include
 
 const std = @import("std");
-const system = std.os.system;
 const log = std.log;
 
 pub fn main() !void {
-    var handle: ?*anyopaque = undefined;
-    handle = std.c.dlopen("/lib/x86_64-linux-gnu/libm.so.6", system.RTLD.LAZY);
-   
-    defer if (handle != null) {
-        _ = std.c.dlclose(handle.?);
-    };
+    var lib = try std.DynLib.open("/lib/x86_64-linux-gnu/libm.so.6");
+    defer lib.close();
 
-    var cosine: ?*const fn (f64) callconv(.C) f64 = undefined;
-    cosine = @ptrCast(
-                @alignCast(
-                    std.c.dlsym(handle, "cos")));
+    const Cosine = *const fn (f64) callconv(.C) f64;
+    const cosine = lib.lookup(Cosine, "cos");
 
     log.info("cos {}\n", .{cosine.?(2.0)});
 }
